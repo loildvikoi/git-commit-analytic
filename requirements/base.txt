@@ -1,0 +1,26 @@
+# FastAPI and server
+fastapi
+uvicorn[standard]
+python-multipart
+
+# Database
+sqlalchemy[asyncio]
+alembic
+aiosqlite
+asyncpg
+
+# Redis and Celery
+redis[hiredis]
+celery[redis]
+
+# AI and HTTP
+httpx
+ollama
+
+# Data validation
+pydantic
+pydantic-settings
+
+# Utilities
+python-dotenv
+PyYAML

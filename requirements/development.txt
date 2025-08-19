@@ -1,0 +1,12 @@
+# Development tools
+pytest
+pytest-asyncio
+pytest-cov
+black
+isort
+flake8
+mypy
+
+# Testing
+httpx
+pytest-mock

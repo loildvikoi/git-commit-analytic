@@ -1,0 +1,4 @@
+# Production extras
+gunicorn
+prometheus-client
+sentry-sdk[fastapi]

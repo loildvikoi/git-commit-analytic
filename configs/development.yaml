@@ -1,0 +1,17 @@
+app:
+  debug: true
+  environment: "development"
+
+server:
+  reload: true
+  workers: 1
+
+database:
+  provider: "sqlite"
+  echo: true
+
+cache:
+  provider: "memory"
+
+logging:
+  level: "DEBUG"
