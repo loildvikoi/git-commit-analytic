@@ -1,0 +1,28 @@
+# RAG & Vector Database
+chromadb
+langchain
+langchain-community
+langchain-experimental
+sentence-transformers
+
+# Embeddings & ML
+openai  # For embeddings if needed
+tiktoken  # Token counting
+faiss-cpu  # Alternative vector search
+
+# Data Processing
+pandas
+numpy
+scikit-learn  # For text preprocessing
+
+# Enhanced Search
+rank-bm25  # Hybrid search
+elasticsearch  # Optional: Full-text search
+
+# Observability
+langfuse  # LLM observability
+
+# Document Processing
+unstructured  # Parse various formats
+pypdf  # PDF processing
+python-docx  # Word docs

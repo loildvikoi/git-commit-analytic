@@ -1,5 +1,5 @@
 from typing import List
-from ..dto.commit_dto import CommitSearchDto, CommitResponseDto
+from ...interface.dto.commit_dto import CommitSearchDto, CommitResponseDto
 from ...domain.repositories.commit_repository import ICommitRepository
 from ...domain.services.cache_service import ICacheService
 import hashlib

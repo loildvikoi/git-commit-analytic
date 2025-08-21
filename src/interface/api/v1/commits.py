@@ -3,7 +3,7 @@ from typing import List, Optional
 from datetime import datetime
 
 from ....application.use_cases.search_commits import SearchCommitsUseCase
-from ....application.dto.commit_dto import CommitSearchDto, CommitResponseDto
+from ....interface.dto.commit_dto import CommitSearchDto, CommitResponseDto
 from ..dependencies import get_search_commits_use_case, get_commit_repository
 from ....domain.repositories.commit_repository import ICommitRepository
 

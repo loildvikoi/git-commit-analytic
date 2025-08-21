@@ -1,4 +1,8 @@
+import json
 from typing import Any, Optional, List, Dict
+
+from pydantic import BaseModel
+
 from src.domain.services.cache_service import ICacheService
 
 
@@ -8,13 +12,41 @@ class RedisCacheService(ICacheService):
 
     async def get(self, key: str) -> Optional[Any]:
         """Get value from cache"""
-        value = await self.redis_client.get(key)
-        return value if value is not None else None
+        try:
+            value = await self.redis_client.get(key)
+            if value is None:
+                return None
+
+            # Deserialize JSON
+            data = json.loads(value)
+
+            # If it's a ChatResponseDto, reconstruct it
+            if isinstance(data, dict) and "_type" in data:
+                if data["_type"] == "ChatResponseDto":
+                    from ...interface.dto.commit_dto import ChatResponseDto
+                    return ChatResponseDto(**data["data"])
+
+            return data
+        except Exception as e:
+            print(f"Error getting cache: {e}")
+            return None
 
     async def set(self, key: str, value: Any, ttl: int = 3600) -> bool:
         """Set value in cache with TTL in seconds"""
         try:
-            await self.redis_client.set(key, value, ex=ttl)
+            # Convert Pydantic models to dict with type info
+            if isinstance(value, BaseModel):
+                serializable_data = {
+                    "_type": value.__class__.__name__,
+                    "data": value.model_dump()
+                }
+            else:
+                serializable_data = value
+
+            # Serialize to JSON
+            json_value = json.dumps(serializable_data, default=str)  # default=str handles datetime
+
+            await self.redis_client.set(key, json_value, ex=ttl)
             return True
         except Exception as e:
             print(f"Error setting cache: {e}")

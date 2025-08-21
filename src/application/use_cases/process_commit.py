@@ -1,46 +1,55 @@
-from typing import Optional
-from datetime import datetime
-from ..dto.commit_dto import CommitDto, CommitResponseDto
+import logging
+
+from fastapi import Depends
+
+from ...interface.api.dependencies import get_sync_commits_use_case
+from ...interface.dto.commit_dto import CommitDto, CommitResponseDto
 from ...domain.repositories.commit_repository import ICommitRepository
 from ...domain.entities.commit import Commit, CommitHash, FileChange
-from ...domain.events.commit_events import CommitReceivedEvent
-from ...domain.services.cache_service import ICacheService
+from src.application.events.commit_events import CommitReceivedEvent
 from ...domain.services.event_dispatcher import IEventDispatcher
-from ...domain.services.message_queue import IMessageQueue
+
+logger = logging.getLogger(__name__)
 
 
 class ProcessCommitUseCase:
-    """Use case for processing incoming commits"""
+    """Use case for processing incoming commits - priority is to save the commit, also need to response as quickly as possible"""
 
     def __init__(
         self,
         commit_repository: ICommitRepository,
         event_dispatcher: IEventDispatcher,
-        cache_service: ICacheService,
-        message_queue: IMessageQueue
+        sync_commit_documents_use_case=None
     ):
         self.commit_repository = commit_repository
         self.event_dispatcher = event_dispatcher
-        self.cache_service = cache_service
-        self.message_queue = message_queue
+        self.sync_commit_documents_use_case = sync_commit_documents_use_case
 
     async def execute(self, commit_dto: CommitDto) -> CommitResponseDto:
         """
-        Process a commit DTO, save it to the repository, and dispatch an event.
+        Process a commit DTO - single responsibility: save business input to persistence layer.
+        Side effects (analysis, caching) are handled by event handlers
         """
 
-        # Check if the commit already exists
+        # Check if commit already exists
         existing = await self.commit_repository.find_by_hash(commit_dto.commit_hash)
         if existing:
+            logger.info(f"Commit {commit_dto.commit_hash} already exists")
             return self._to_response_dto(existing)
 
         # Convert DTO to domain entity
         commit = self._to_domain(commit_dto)
 
-        # Save the commit to the repository
+        # Save the commit (this is the primary responsibility)
         saved_commit = await self.commit_repository.save(commit)
+        logger.info(f"Saved commit {saved_commit.commit_hash.value}")
 
-        # Dispatch an event for the received commit
+        # If saving failed, raise an exception
+        if not saved_commit:
+            logger.error(f"Failed to save commit {commit.commit_hash.value}")
+            raise Exception("Failed to save commit")
+
+        # Dispatch domain event (let handlers handle side effects)
         event = CommitReceivedEvent(
             commit_id=saved_commit.id,
             commit_hash=saved_commit.commit_hash.value,
@@ -48,19 +57,16 @@ class ProcessCommitUseCase:
             author=saved_commit.author_email,
             branch=saved_commit.branch
         )
+
         await self.event_dispatcher.dispatch(event)
+        logger.info(f"Dispatched CommitReceivedEvent for {saved_commit.commit_hash.value}")
 
-        # Do async analysis by queue
-        await self.message_queue.enqueue(
-            "analyze_commit",
-            {"commit_id": saved_commit.id}
-        )
+        # Sync commit to documents
 
-        # Invalidate relevant caches
-        await self.cache_service.invalidate_pattern(f"commits:project:{commit.project}:*")
-        await self.cache_service.invalidate_pattern(f"commits:author:{commit.author_email}:*")
+        if self.sync_commit_documents_use_case:
+            logger.info(f"Syncing commit {saved_commit.commit_hash.value} to documents")
+            await self.sync_commit_documents_use_case.commit2document(saved_commit, skip_existing=True)
 
-        # Return a response DTO
         return self._to_response_dto(saved_commit)
 
     def _to_domain(self, dto: CommitDto) -> Commit:

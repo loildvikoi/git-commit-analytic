@@ -3,8 +3,8 @@ from typing import List
 import logging
 
 from ....application.use_cases.process_commit import ProcessCommitUseCase
-from ....application.dto.webhook_dto import WebhookPayloadDto
-from ....application.dto.commit_dto import CommitDto, FileChangeDto
+from ....interface.dto.webhook_dto import WebhookPayloadDto
+from ....interface.dto.commit_dto import CommitDto, FileChangeDto
 from ..dependencies import get_process_commit_use_case, verify_webhook_signature
 
 logger = logging.getLogger(__name__)
@@ -18,7 +18,7 @@ async def handle_github_webhook(
         use_case: ProcessCommitUseCase = Depends(get_process_commit_use_case),
         signature_verified: bool = Depends(verify_webhook_signature)
 ):
-    """Handle GitHub webhook"""
+    """Handle GitHub webhook, DTO layer, validate business input, need to response as quickly as possible"""
 
     if not signature_verified:
         raise HTTPException(
@@ -46,14 +46,14 @@ async def handle_github_webhook(
                 issue_numbers=_extract_issue_numbers(commit_data.message)
             )
 
-            # Process commit (this will queue analysis automatically)
+            # Process commit (this is the primary responsibility - domain logic)
             result = await use_case.execute(commit_dto)
             processed_commits.append(result.commit_hash)
 
             logger.info(f"Processed commit: {commit_data.id[:8]}")
 
         except Exception as e:
-            logger.error(f"Error processing commit {commit_data.id}: {str(e)}")
+            logger.error(f"Error processing commit {commit_data.id}: {str(e)}", exc_info=True)
             # Continue processing other commits
 
     return {

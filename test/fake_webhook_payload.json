@@ -1,0 +1,94 @@
+{
+  "ref": "refs/heads/main",
+  "repository": {
+    "name": "employee-management-system",
+    "full_name": "company/employee-management-system",
+    "url": "https://github.com/company/employee-management-system",
+    "default_branch": "main"
+  },
+  "commits": [
+    {
+      "id": "a1b2c3d4e5f6789012345678901234567890abcd",
+      "message": "Fix critical authentication bug and improve login security fixes #123",
+      "timestamp": "2025-08-19T10:30:00Z",
+      "author": {
+        "name": "Nguyen Van A",
+        "email": "nguyen.vana@company.com",
+        "username": "nguyenvana"
+      },
+      "added": [
+        "src/auth/security_validator.py",
+        "tests/test_auth_security.py",
+        "docs/security_guidelines.md",
+        "config/auth_settings.yaml"
+      ],
+      "modified": [
+        "src/auth/login.py",
+        "src/core/password_manager.py",
+        "src/models/user.py",
+        "requirements.txt",
+        "README.md"
+      ],
+      "removed": [
+        "src/auth/deprecated_auth.py",
+        "src/temp/debug_login.py"
+      ],
+      "url": "https://github.com/company/employee-management-system/commit/a1b2c3d4e5f6789012345678901234567890abcd"
+    },
+    {
+      "id": "f6e5d4c3b2a1987654321098765432109876543f",
+      "message": "Add new employee dashboard feature implements #456",
+      "timestamp": "2025-08-19T11:15:00Z",
+      "author": {
+        "name": "Tran Thi B",
+        "email": "tran.thib@company.com",
+        "username": "tranthib"
+      },
+      "added": [
+        "src/features/dashboard.py",
+        "src/features/employee_stats.py",
+        "templates/dashboard.html",
+        "static/css/dashboard.css",
+        "static/js/dashboard.js",
+        "tests/test_dashboard.py"
+      ],
+      "modified": [
+        "src/main.py",
+        "src/routes/employee.py",
+        "src/models/employee.py"
+      ],
+      "removed": [],
+      "url": "https://github.com/company/employee-management-system/commit/f6e5d4c3b2a1987654321098765432109876543f"
+    }
+  ],
+  "pusher": {
+    "name": "Tran Thi B",
+    "email": "tran.thib@company.com",
+    "username": "tranthib"
+  },
+  "head_commit": {
+    "id": "f6e5d4c3b2a1987654321098765432109876543f",
+    "message": "Add new employee dashboard feature implements #456",
+    "timestamp": "2025-08-19T11:15:00Z",
+    "author": {
+      "name": "Tran Thi B",
+      "email": "tran.thib@company.com",
+      "username": "tranthib"
+    },
+    "added": [
+      "src/features/dashboard.py",
+      "src/features/employee_stats.py",
+      "templates/dashboard.html",
+      "static/css/dashboard.css",
+      "static/js/dashboard.js",
+      "tests/test_dashboard.py"
+    ],
+    "modified": [
+      "src/main.py",
+      "src/routes/employee.py",
+      "src/models/employee.py"
+    ],
+    "removed": [],
+    "url": "https://github.com/company/employee-management-system/commit/f6e5d4c3b2a1987654321098765432109876543f"
+  }
+}

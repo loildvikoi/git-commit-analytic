@@ -1,10 +1,13 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException
 from ....application.use_cases.chat_with_ai import ChatWithAIUseCase
-from ....application.dto.commit_dto import ChatRequestDto, ChatResponseDto
+from ....interface.dto.commit_dto import ChatRequestDto, ChatResponseDto
 from ..dependencies import get_chat_use_case
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
+logger = logging.getLogger(__name__)
 
 @router.post("/", response_model=ChatResponseDto)
 async def chat_with_ai(
@@ -17,6 +20,7 @@ async def chat_with_ai(
         response = await use_case.execute(request)
         return response
     except Exception as e:
+        logger.error(f"Error processing chat request: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=500,
             detail=f"Error processing chat request: {str(e)}"

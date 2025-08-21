@@ -8,6 +8,7 @@ sqlalchemy[asyncio]
 alembic
 aiosqlite
 asyncpg
+aiomysql
 
 # Redis and Celery
 redis[hiredis]
@@ -24,3 +25,4 @@ pydantic-settings
 # Utilities
 python-dotenv
 PyYAML
+itsdangerous

@@ -142,3 +142,31 @@ class Commit(Entity):
         self.sentiment_score = sentiment
         self.analyzed_at = datetime.utcnow()
         self.updated_at = datetime.utcnow()
+
+    def to_dict(self):
+        """Convert commit to dictionary representation"""
+        return {
+            "id": self.id,
+            "commit_hash": self.commit_hash.value,
+            "author_email": self.author_email,
+            "author_name": self.author_name,
+            "message": self.message,
+            "timestamp": self.timestamp.isoformat(),
+            "branch": self.branch,
+            "project": self.project,
+            "files_changed": [f.__dict__ for f in self.files_changed],
+            "issue_numbers": self.issue_numbers,
+            "summary": self.summary,
+            "tags": self.tags,
+            "sentiment_score": self.sentiment_score,
+            "embedding_id": self.embedding_id,
+            "analyzed_at": self.analyzed_at.isoformat() if self.analyzed_at else None,
+            "metrics": {
+                "total_lines_changed": self.metrics.total_lines_changed,
+                "files_count": self.metrics.files_count,
+                "complexity_score": self.metrics.complexity_score,
+                "impact_score": self.metrics.impact_score
+            },
+            "created_at": self.created_at.isoformat(),
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None
+        }

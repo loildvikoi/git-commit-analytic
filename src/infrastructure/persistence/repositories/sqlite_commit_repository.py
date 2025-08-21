@@ -25,7 +25,7 @@ class SqliteCommitRepository(ICommitRepository):
 
             # Create database model
             db_commit = CommitModel(
-                id=commit.id,
+                # id=commit.id,
                 commit_hash=commit.commit_hash.value,
                 author_email=commit.author_email,
                 author_name=commit.author_name,
@@ -64,7 +64,7 @@ class SqliteCommitRepository(ICommitRepository):
 
         except Exception as e:
             await self.session.rollback()
-            logger.error(f"Error saving commit {commit.commit_hash.value}: {str(e)}")
+            logger.error(f"Error saving commit {commit.commit_hash.value}: {str(e)}", exc_info=True)
             raise
 
     async def find_by_id(self, commit_id: str) -> Optional[Commit]:
@@ -76,7 +76,7 @@ class SqliteCommitRepository(ICommitRepository):
 
             return self._to_domain(db_commit) if db_commit else None
         except Exception as e:
-            logger.error(f"Error finding commit by ID {commit_id}: {str(e)}")
+            logger.debug(f"Error finding commit by ID {commit_id}: {str(e)}", exc_info=True)
             return None
 
     async def find_by_hash(self, commit_hash: str) -> Optional[Commit]:
@@ -88,7 +88,7 @@ class SqliteCommitRepository(ICommitRepository):
 
             return self._to_domain(db_commit) if db_commit else None
         except Exception as e:
-            logger.error(f"Error finding commit by hash {commit_hash}: {str(e)}")
+            logger.debug(f"Error finding commit by hash {commit_hash}: {str(e)}", exc_info=True)
             return None
 
     async def find_by_author(
@@ -117,7 +117,7 @@ class SqliteCommitRepository(ICommitRepository):
 
             return [self._to_domain(db_commit) for db_commit in db_commits]
         except Exception as e:
-            logger.error(f"Error finding commits by author {author_email}: {str(e)}")
+            logger.debug(f"Error finding commits by author {author_email}: {str(e)}", exc_info=True)
             return []
 
     async def find_by_project(
@@ -146,7 +146,7 @@ class SqliteCommitRepository(ICommitRepository):
 
             return [self._to_domain(db_commit) for db_commit in db_commits]
         except Exception as e:
-            logger.error(f"Error finding commits by project {project}: {str(e)}")
+            logger.debug(f"Error finding commits by project {project}: {str(e)}", exc_info=True)
             return []
 
     async def search(
@@ -196,7 +196,7 @@ class SqliteCommitRepository(ICommitRepository):
 
             return [self._to_domain(db_commit) for db_commit in db_commits]
         except Exception as e:
-            logger.error(f"Error searching commits with query '{query}': {str(e)}")
+            logger.debug(f"Error searching commits with query '{query}': {str(e)}", exc_info=True)
             return []
 
     async def update(self, commit: Commit) -> Commit:
@@ -224,7 +224,7 @@ class SqliteCommitRepository(ICommitRepository):
             return self._to_domain(db_commit)
         except Exception as e:
             await self.session.rollback()
-            logger.error(f"Error updating commit {commit.id}: {str(e)}")
+            logger.error(f"Error updating commit {commit.id}: {str(e)}", exc_info=True)
             raise
 
     async def get_statistics(
@@ -297,7 +297,7 @@ class SqliteCommitRepository(ICommitRepository):
                 'top_authors': top_authors
             }
         except Exception as e:
-            logger.error(f"Error getting statistics: {str(e)}")
+            logger.debug(f"Error getting statistics: {str(e)}", exc_info=True)
             return {}
 
     def _to_domain(self, db_model: CommitModel) -> Commit:

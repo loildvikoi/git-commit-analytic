@@ -1,12 +1,15 @@
+import logging
 from typing import List
 from datetime import datetime, timedelta
 import time
-from ..dto.commit_dto import ChatRequestDto, ChatResponseDto
+from ...interface.dto.commit_dto import ChatRequestDto, ChatResponseDto
 from ...domain.repositories.commit_repository import ICommitRepository
 from ...domain.services.ai_analyzer import IAIAnalyzer
 from ...domain.services.cache_service import ICacheService
 import hashlib
 
+
+logger = logging.getLogger(__name__)
 
 class ChatWithAIUseCase:
     """Use case for interacting with AI to analyze commits and answer questions."""
@@ -32,28 +35,36 @@ class ChatWithAIUseCase:
         # Check if the answer is cached
         cached_result = await self.cache_service.get(cache_key)
         if cached_result:
+            logger.info(f"Hit cache for question: {chat_dto.question}")
             return cached_result
 
         # Fetch commits based on the provided context
         end_date = datetime.now()
-        start_date = end_date - timedelta(days=chat_dto.context_days)
+        start_date = end_date
 
-        context_commits = await self.commit_repository.find_by_project(
-            project=chat_dto.project,
-            start_date=start_date,
-            end_date=end_date,
-            limit=100
-        )
+        if chat_dto.context_days:
+            start_date = end_date - timedelta(days=chat_dto.context_days)
+
+        context_commits = []
+
+        if chat_dto.context_project:
+            project_context = await self.commit_repository.find_by_project(
+                project=chat_dto.context_project,
+                start_date=start_date,
+                end_date=end_date,
+                limit=100
+            )
+            context_commits.extend(project_context)
 
         if chat_dto.context_author:
-            author_commits = await self.commit_repository.find_by_author(
-                author=chat_dto.context_author,
+            author_context = await self.commit_repository.find_by_author(
+                author_email=chat_dto.context_author,
                 project=chat_dto.context_project,
                 start_date=start_date,
                 end_date=end_date,
                 limit=50
             )
-            context_commits.extend(author_commits)
+            context_commits.extend(author_context)
 
         # Remove duplicates
         unique_commits = {commit.id: commit for commit in context_commits}
