@@ -156,6 +156,15 @@ class Settings(BaseSettings):
         description="Allowed file types"
     )
 
+    # Phase 3 Settings
+    langchain_tracing_v2: bool = Field(default=False, description="Enable LangChain tracing")
+    langchain_api_key: Optional[str] = Field(default=None, description="LangChain API key for tracing")
+    agent_default_model: str = Field(default="llama3.2:1b", description="Default agent model")
+    agent_max_iterations: int = Field(default=5, ge=1, le=20, description="Max iterations for agents")
+    agent_temperature: float = Field(default=0.3, ge=0.0, le=1.0, description="Temperature for agent responses")
+    workflow_timeout: int = Field(default=60, ge=1, le=3600, description="Workflow execution timeout in seconds")
+
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
@@ -164,6 +173,12 @@ class Settings(BaseSettings):
 
     @property
     def database_url(self) -> str:
+        return self._build_db_url(is_async=True)
+
+    def get_database_url(self, *, is_async: bool = True) -> str:
+        return self._build_db_url(is_async=is_async)
+
+    def _build_db_url(self, *, is_async: bool) -> str:
         """Computed database URL"""
         if self.db_provider == DatabaseProvider.SQLITE:
             os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
@@ -175,6 +190,8 @@ class Settings(BaseSettings):
 
         elif self.db_provider == DatabaseProvider.MYSQL:
             password_part = f":{self.db_password}" if self.db_password else ""
+            if not is_async:
+                return f"mysql+pymysql://{self.db_user}{password_part}@{self.db_host}:{self.db_port}/{self.db_name}"
             return f"mysql+aiomysql://{self.db_user}{password_part}@{self.db_host}:{self.db_port}/{self.db_name}"
 
     @property

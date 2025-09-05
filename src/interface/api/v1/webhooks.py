@@ -15,7 +15,7 @@ router = APIRouter(prefix="/webhooks", tags=["webhooks"])
 async def handle_github_webhook(
         payload: WebhookPayloadDto,
         background_tasks: BackgroundTasks,
-        use_case: ProcessCommitUseCase = Depends(get_process_commit_use_case),
+        use_case = Depends(get_process_commit_use_case),
         signature_verified: bool = Depends(verify_webhook_signature)
 ):
     """Handle GitHub webhook, DTO layer, validate business input, need to response as quickly as possible"""
@@ -48,7 +48,9 @@ async def handle_github_webhook(
 
             # Process commit (this is the primary responsibility - domain logic)
             result = await use_case.execute(commit_dto)
-            processed_commits.append(result.commit_hash)
+            processed_commits.append(commit_data.id)
+
+            logger.info(f"Result: {result}")
 
             logger.info(f"Processed commit: {commit_data.id[:8]}")
 

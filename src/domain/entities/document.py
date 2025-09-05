@@ -19,7 +19,7 @@ class DocumentType(Enum):
 @dataclass
 class DocumentMetadata(ValueObject):
     """Value object for document metadata"""
-    source_type: str  # github, gitlab, gitlog, manual
+    source_type: str
     source_url: Optional[str] = None
     indexed_at: Optional[datetime] = None
     last_updated: Optional[datetime] = None
@@ -27,7 +27,7 @@ class DocumentMetadata(ValueObject):
     language: Optional[str] = None
 
     def _validate(self):
-        if self.source_type not in ['github', 'gitlab', 'gitlog', 'manual', 'api']:
+        if self.source_type not in ['github', 'gitlab', 'gitlog', 'manual', 'api', 'webhook']:
             raise ValueError(f"Invalid source type: {self.source_type}")
         if self.version < 1:
             raise ValueError("Version must be positive")

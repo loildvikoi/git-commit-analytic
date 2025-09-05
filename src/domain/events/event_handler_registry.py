@@ -155,8 +155,7 @@ async def init_event_handlers():
     """Initialize all event handlers"""
     try:
         # Import business domain handlers
-        from src.application.event_handlers import commit_event_handlers
-        from src.application.event_handlers import document_event_handlers
+        import src.application.event_handlers
 
         # Import infrastructure handlers
         from src.infrastructure.messaging.event_handlers import cache_event_handlers

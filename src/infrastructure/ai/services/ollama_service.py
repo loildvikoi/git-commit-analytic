@@ -66,7 +66,7 @@ class OllamaService(IAIAnalyzer):
                     extracted_entities=analysis_data.get('entities', [])
                 )
 
-                logger.info(f"Successfully analyzed commit {commit.commit_hash.value} in {processing_time}ms")
+                logger.info(f"Ollama analyzed commit {commit.commit_hash.value} in {processing_time}ms")
                 return result
 
             except Exception as e:

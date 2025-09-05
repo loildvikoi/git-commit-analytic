@@ -4,10 +4,12 @@ from redis.asyncio import Redis
 import os
 import logging
 
+from ...application.use_cases.enhanced_process_commit import EnhancedProcessCommitUseCase
 # Import domain interfaces
 from ...domain.repositories.commit_repository import ICommitRepository
 from ...domain.repositories.document_repository import IDocumentRepository
 from ...domain.repositories.vector_repository import IVectorRepository
+from ...domain.services.agent_service import IAgentService
 from ...domain.services.embedding_service import IEmbeddingService
 from ...domain.services.search_service import ISearchService
 from ...domain.services.rag_service import IRAGService
@@ -234,17 +236,6 @@ async def get_index_document_use_case(
     )
 
 
-async def get_process_commit_use_case(
-        repo: ICommitRepository = Depends(get_commit_repository),
-        dispatcher: IEventDispatcher = Depends(get_event_dispatcher),
-        sync_commits_use_case = Depends(get_sync_documents_use_case),
-):
-    """Get process commit use case with all dependencies"""
-    from ...application.use_cases.process_commit import ProcessCommitUseCase
-    return ProcessCommitUseCase(repo, dispatcher, sync_commits_use_case)
-
-
-
 async def get_search_documents_use_case(
     search_service: ISearchService = Depends(get_search_service),
     cache_service: ICacheService = Depends(get_cache_service)
@@ -283,4 +274,104 @@ async def get_sync_commits_use_case(
         document_repo,
         embedding_service,
         vector_repo
+    )
+
+
+async def get_agent_repository():
+    """Get agent repository"""
+    from ...infrastructure.persistence.repositories.sqlite_agent_repository import SqliteAgentRepository
+    from ...infrastructure.persistence.database import get_session
+    async with get_session() as session:
+        return SqliteAgentRepository(session)
+
+
+async def get_agent_service():
+    """Get agent service"""
+    from ...infrastructure.agents.langchain_agent_service import LangChainAgentService
+    return LangChainAgentService()
+
+
+async def get_workflow_service():
+    """Get workflow service"""
+    from ...infrastructure.workflow.simple_workflow_service import SimpleWorkflowService
+    return SimpleWorkflowService()
+
+
+async def get_tool_service():
+    """Get tool service"""
+    from ...infrastructure.tools.tool_registry import ToolRegistry
+    return ToolRegistry()
+
+
+async def get_code_review_use_case(
+    agent_service = Depends(get_agent_service),
+    tool_service = Depends(get_tool_service),
+    commit_repo = Depends(get_commit_repository),
+    search_service = Depends(get_search_service)
+):
+    """Get code review use case"""
+    from ...application.use_cases.code_review_agent import CodeReviewAgentUseCase
+    return CodeReviewAgentUseCase(
+        agent_service,
+        tool_service,
+        commit_repo,
+        search_service
+    )
+
+
+async def get_multi_agent_analysis_use_case(
+    agent_service = Depends(get_agent_service),
+    workflow_service = Depends(get_workflow_service),
+    commit_repo = Depends(get_commit_repository)
+):
+    """Get multi-agent analysis use case"""
+    from ...application.use_cases.multi_agent_analysis import MultiAgentAnalysisUseCase
+    return MultiAgentAnalysisUseCase(
+        agent_service,
+        workflow_service,
+        commit_repo
+    )
+
+
+async def get_proactive_insights_use_case(
+    agent_service = Depends(get_agent_service),
+    commit_repo = Depends(get_commit_repository),
+    search_service = Depends(get_search_service),
+    cache_service = Depends(get_cache_service)
+):
+    """Get proactive insights use case"""
+    from ...application.use_cases.proactive_insights import ProactiveInsightsUseCase
+    return ProactiveInsightsUseCase(
+        agent_service,
+        commit_repo,
+        search_service,
+        cache_service
+    )
+
+
+# Phase 1 old dependencies
+# async def get_process_commit_use_case(
+#         repo: ICommitRepository = Depends(get_commit_repository),
+#         dispatcher: IEventDispatcher = Depends(get_event_dispatcher),
+#         sync_commits_use_case = Depends(get_sync_documents_use_case),
+# ):
+#     """Get process commit use case with all dependencies"""
+#     from ...application.use_cases.process_commit import ProcessCommitUseCase
+#     return ProcessCommitUseCase(repo, dispatcher, sync_commits_use_case)
+
+# Phase 3 new dependencies
+async def get_process_commit_use_case(
+    commit_repository: ICommitRepository = Depends(get_commit_repository),
+    document_repository: IDocumentRepository = Depends(get_document_repository),
+    embedding_service: IEmbeddingService = Depends(get_embedding_service),
+    agent_service: IAgentService = Depends(get_agent_service),
+    event_dispatcher: IEventDispatcher = Depends(get_event_dispatcher),
+):
+    """Get process commit use case with all dependencies"""
+    return EnhancedProcessCommitUseCase(
+        commit_repository,
+        document_repository,
+        embedding_service,
+        agent_service,
+        event_dispatcher
     )

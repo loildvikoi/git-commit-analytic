@@ -1,21 +1,19 @@
-import asyncio
 import logging
 import time
 from contextlib import asynccontextmanager
-from typing import Dict, Any
 
-from fastapi import FastAPI, WebSocket, Request, HTTPException, Depends
+from fastapi import FastAPI, WebSocket, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.security import HTTPBearer
-from sqlalchemy import text
 from starlette.middleware.sessions import SessionMiddleware
 
 from src.core.config import settings
 from src.core.logging import setup_logging
 from src.infrastructure.persistence.database import check_database_health
 from src.interface.api.v1 import webhooks, commits, chat
+from src.interface.api.v3 import agents
 from src.interface.websocket.handlers import websocket_endpoint
 from src.interface.api.v2 import documents, rag
 
@@ -76,6 +74,11 @@ async def lifespan(app: FastAPI):
             logger.info("✅ Embedding service initialized")
         except Exception as e:
             logger.warning(f"⚠️ Embedding service initialization failed: {e}")
+
+        # Initialize agent system (Phase 3)
+        logger.info("Initializing agent system...")
+        from src.interface.api.dependencies import get_agent_service
+        agent_service = await get_agent_service()
 
         # Startup complete
         startup_duration = time.time() - startup_time
@@ -240,6 +243,8 @@ app.include_router(chat.router, prefix="/api/v1", tags=["Chat"])
 app.include_router(documents.router, prefix="/api/v2", tags=["Documents"])
 app.include_router(rag.router, prefix="/api/v2", tags=["RAG"])
 
+# Phase 3 routers
+app.include_router(agents.router, prefix="/api/v3")
 
 # ============================================================================
 # WEBSOCKET ENDPOINTS

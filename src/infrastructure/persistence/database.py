@@ -22,6 +22,7 @@ metadata = MetaData()
 # Import all models to ensure they're registered with SQLAlchemy
 from .models.commit_model import CommitModel, AnalysisModel
 from .models.document_model import DocumentModel
+from .models.agent_model import AgentModel, WorkflowModel
 
 # Global engine and session maker
 engine = None

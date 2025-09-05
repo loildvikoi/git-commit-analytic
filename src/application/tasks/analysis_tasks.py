@@ -38,7 +38,7 @@ def analyze_commit_task(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         # Run async analysis
         result = asyncio.run(_analyze_commit_async(commit_id))
 
-        logger.info(f"Successfully analyzed commit: {commit_id}")
+        logger.info(f"Processed analyze commit: {commit_id}")
         return result
 
     except Exception as e:

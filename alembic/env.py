@@ -4,6 +4,7 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
+from sqlalchemy.ext.asyncio import async_engine_from_config
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -20,15 +21,18 @@ if config.config_file_name is not None:
 # target_metadata = mymodel.Base.metadata
 from src.core.config import settings
 from src.infrastructure.persistence.database import Base
-from src.infrastructure.persistence.models import *
+from src.infrastructure.persistence.models.commit_model import CommitModel, AnalysisModel
+from src.infrastructure.persistence.models.document_model import DocumentModel
+from src.infrastructure.persistence.models.agent_model import AgentModel, WorkflowModel
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
-if settings.db_url:
-    config.set_main_option("sqlalchemy.url", settings.db_url)
+if settings.database_url:
+    print(f"Using database URL: {settings.get_database_url(is_async=False)}")
+    config.set_main_option("sqlalchemy.url", settings.get_database_url(is_async=False))
 
 
 def run_migrations_offline() -> None:
